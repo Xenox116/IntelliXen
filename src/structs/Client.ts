@@ -1,9 +1,15 @@
 import Discord from 'discord.js';
-import { eventHandler } from '../handlers/event';
+import { LanguageService } from '../services';
+import { TransPetition } from '../interfaces';
+import { eventHandler } from '../handlers';
 
 export class ExtendedClient extends Discord.Client<true>{
 
     public okay: boolean = true;
+
+    public languageService: LanguageService = new LanguageService();
+
+    public transPetitions: TransPetition[] = [];
 
     public constructor(){
         super({
@@ -13,7 +19,6 @@ export class ExtendedClient extends Discord.Client<true>{
             }
          });
     }
-
 
     public async start(){
         await eventHandler(this);
