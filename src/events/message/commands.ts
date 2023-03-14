@@ -1,7 +1,8 @@
-import type { Message, User } from "discord.js";
+import type { Message } from "discord.js";
 import { EventBuilder, ExtendedClient } from "../../structs";
-import { Language } from "../../interfaces/Language";
+import { Language } from "../../interfaces";
 import { TransPetition } from "../../interfaces";
+import { trans } from "../../functions";
 
 export default new EventBuilder("messageCreate").setCallback(
   async (client: ExtendedClient, interaction: Message) => {
@@ -12,8 +13,10 @@ export default new EventBuilder("messageCreate").setCallback(
     message = interaction.content;
 
     if (!message.startsWith("¡")) {
-      const transPetition: TransPetition = client.transPetitions.filter(
-        (tp) => tp.user.id === interaction.author.id
+      const transPetition: TransPetition = client.transPetitions.filter((tp) =>
+        tp.user.id === interaction.author.id && tp.guild === null
+          ? true
+          : tp.guild!.id === interaction.guild!.id
       )[0];
       if (transPetition != null) {
         const trans = await client.languageService.transDetect(
@@ -23,12 +26,14 @@ export default new EventBuilder("messageCreate").setCallback(
         );
         interaction.reply(trans.translatedText);
       }
+      return;
     }
-    
+
     //* commands
     command = message.substring(1).split(" ")!;
-    
+
     if (command[0] === "test") {
+      console.log(client.transPetitions);
       return;
     }
     // replies the ping
@@ -61,35 +66,7 @@ export default new EventBuilder("messageCreate").setCallback(
       for (let i = 2; i < command.length; i++) {
         str += command[i] + " ";
       }
-
-      const languages: Language[] = await client.languageService.getLanguage();
-      if (!command[1].includes("-")) {
-        if (languages.filter((l) => l.code === command[1]).length > 0) {
-          const trans = await client.languageService.transDetect(
-            "auto",
-            command[1],
-            str
-          );
-          interaction.reply(trans.translatedText + "");
-        } else {
-          interaction.reply("Codigo de idioma incorrecto");
-        }
-      } else {
-        const codes: string[] = command[1].split("-");
-        if (
-          languages.filter((l) => l.code === codes[0]).length > 0 &&
-          languages.filter((l) => l.code === codes[1]).length > 0
-        ) {
-          const trans = await client.languageService.transDetect(
-            codes[0],
-            codes[1],
-            str
-          );
-          interaction.reply(trans.translatedText + "");
-        } else {
-          interaction.reply("Codigo de idioma incorrecto");
-        }
-      }
+      interaction.reply(await trans(client, command[1], str));
       return;
     }
     //starts translating continually
@@ -103,24 +80,21 @@ export default new EventBuilder("messageCreate").setCallback(
         languages.filter((l) => l.code === codes[0]).length > 0 &&
         languages.filter((l) => l.code === codes[1]).length > 0
       ) {
-        const user: User = interaction.author;
+        const transPet: TransPetition = {
+          user: interaction.author,
+          guild: interaction.guild,
+          source: codes[0],
+          target: codes[1],
+        };
 
-        const index = client.transPetitions.findIndex(
-          (tp) => tp.user.id === interaction.author.id
+        const index = client.transPetitions.findIndex((tp) =>
+          tp.user.id === interaction.author.id && tp.guild === null
+            ? true
+            : tp.guild!.id === interaction.guild!.id
         );
 
-        if (index <= 0)
-          client.transPetitions.splice(index, 1,{
-              user: user,
-              source: codes[0],
-              target: codes[1],
-            });
-        else
-          client.transPetitions.push({
-            user: user,
-            source: codes[0],
-            target: codes[1],
-          });
+        if (index >= 0) client.transPetitions.splice(index, 1, transPet);
+        else client.transPetitions.push(transPet);
       } else {
         interaction.reply("Codigo de idioma incorrecto");
       }
@@ -129,11 +103,30 @@ export default new EventBuilder("messageCreate").setCallback(
     //stops translating continually
     if (command[0] === "detcont") {
       if (command.length !== 1) return;
-      const index = client.transPetitions.findIndex(
-        (tp) => tp.user.id === interaction.author.id
+      const index = client.transPetitions.findIndex((tp) =>
+        tp.user.id === interaction.author.id && tp.guild === null
+          ? true
+          : tp.guild!.id === interaction.guild!.id
       );
 
       if (index <= 0) client.transPetitions.splice(index, 1);
+      return;
+    }
+
+    if (command[0] == "tthis") {
+      if (command.length !== 2) return;
+      if (interaction.reference !== null) {
+        interaction.reply(
+          await trans(
+            client,
+            command[1],
+            (
+              await interaction.fetchReference()
+            ).content
+          )
+        );
+      }
+      return;
     }
   }
 );
