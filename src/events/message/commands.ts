@@ -14,9 +14,9 @@ export default new EventBuilder("messageCreate").setCallback(
 
     if (!message.startsWith("¡")) {
       const transPetition: TransPetition = client.transPetitions.filter((tp) =>
-        tp.user.id === interaction.author.id && tp.guild === null
+        tp.user.id === interaction.author.id && (tp.guild === null
           ? true
-          : tp.guild!.id === interaction.guild!.id
+          : tp.guild!.id === interaction.guild!.id)
       )[0];
       if (transPetition != null) {
         const trans = await client.languageService.transDetect(
@@ -89,12 +89,11 @@ export default new EventBuilder("messageCreate").setCallback(
         };
 
         const index = client.transPetitions.findIndex((tp) =>
-          tp.user.id === interaction.author.id && tp.guild === null
+          tp.user.id === interaction.author.id && (tp.guild === null
             ? true
-            : tp.guild!.id === interaction.guild!.id
+            : tp.guild!.id === interaction.guild!.id)
         );
-
-        if (index >= 0) client.transPetitions.splice(index, 1, transPet);
+        if (index > 0) client.transPetitions.splice(index, 1, transPet);
         else client.transPetitions.push(transPet);
       } else {
         interaction.reply("Codigo de idioma incorrecto");
@@ -135,9 +134,9 @@ export default new EventBuilder("messageCreate").setCallback(
       return interaction.reply(
         "'¡' para comenzar comando\n" +
           "lcodes -> ver los codigos e idiomas disponibles\n" +
-          "trans [codTo]||[codFrom-codTo] [texto] -> traduce la frase seguida del comando\n" +
+          "trans [codTo]or[codFrom-codTo] [texto] -> traduce la frase seguida del comando\n" +
           "tcont [codFrom-codTo] -> cada vez que el usuario hable se traducirán sus mensajes\n" +
-          "tthis [codTo]||[codFrom-codTo] -> respondiendo a un mensjae traduce este\n" +
+          "tthis [codTo]or[codFrom-codTo] -> respondiendo a un mensjae traduce este\n" +
           "detcont -> se dejara de traducir los mensajes del usuario"
       );
     }
