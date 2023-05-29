@@ -137,6 +137,7 @@ export default new EventBuilder("messageCreate").setCallback(
           "lcodes -> ver los codigos e idiomas disponibles\n" +
           "trans [cod]||[cod-cod] [texto] -> traduce la frase seguida del comando\n" +
           "tcont [cod-cod] -> cada vez que el usuario hable se traducirán sus mensajes\n" +
+          "tthis [cod]||[cod-cod] -> respondiendo a un mensjae traduce este\n" +
           "detcont -> se dejara de traducir los mensajes del usuario"
       );
     }
