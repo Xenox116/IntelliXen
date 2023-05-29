@@ -31,6 +31,7 @@ export default new EventBuilder("messageCreate").setCallback(
 
     //* commands
     command = message.substring(1).split(" ")!;
+    command[0] = command[0].toLowerCase();
 
     if (command[0] === "test") {
       console.log(client.transPetitions);
@@ -61,7 +62,7 @@ export default new EventBuilder("messageCreate").setCallback(
     }
     //translates text
     if (command[0] === "trans") {
-      if (command.length < 2) return;
+      if (command.length < 3) return;
       let str: string = "";
       for (let i = 2; i < command.length; i++) {
         str += command[i] + " ";
@@ -98,7 +99,7 @@ export default new EventBuilder("messageCreate").setCallback(
       } else {
         interaction.reply("Codigo de idioma incorrecto");
       }
-      return;
+      return interaction.reply("Se comenzará a traducir tus mensajes");
     }
     //stops translating continually
     if (command[0] === "detcont") {
@@ -110,9 +111,9 @@ export default new EventBuilder("messageCreate").setCallback(
       );
 
       if (index <= 0) client.transPetitions.splice(index, 1);
-      return;
+      return interaction.reply("Se dejará de traducir tus mensajes");
     }
-
+    //translates replied message 
     if (command[0] == "tthis") {
       if (command.length !== 2) return;
       if (interaction.reference !== null) {
@@ -127,6 +128,17 @@ export default new EventBuilder("messageCreate").setCallback(
         );
       }
       return;
+    }
+    //message with help
+    if (command[0] == "help") {
+      if (command.length !== 1) return;
+      return interaction.reply(
+        "'¡' para comenzar comando\n" +
+          "lcodes -> ver los codigos e idiomas disponibles\n" +
+          "trans [cod]||[cod-cod] [texto] -> traduce la frase seguida del comando\n" +
+          "tcont [cod-cod] -> cada vez que el usuario hable se traducirán sus mensajes\n" +
+          "detcont -> se dejara de traducir los mensajes del usuario"
+      );
     }
   }
 );
